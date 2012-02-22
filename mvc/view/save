@@ -1,0 +1,612 @@
+
+package mvc.view
+{
+import com.greensock.*;
+import com.greensock.easing.*;
+import com.greensock.events.*;
+import com.greensock.loading.*;
+import com.greensock.plugins.*;
+import flash.media.SoundMixer;
+import flash.display.*;
+import flash.events.*;
+import flash.events.MouseEvent;
+import mvc.controller.Controller;
+import mvc.model.Model;
+import com.greensock.plugins.TweenPlugin;
+import com.greensock.plugins.TransformAroundCenterPlugin;
+//import fl.events.SliderEvent;
+TweenPlugin.activate([BlurFilterPlugin,TintPlugin,TransformAroundCenterPlugin]);
+	public class SimulationView extends MovieClip{
+
+
+		private var _model:Model;
+		private var _controller:Controller;
+		public var tl:TimelineMax;
+		private var m;
+        private var _slider1:Slider;
+        private var _slider2:Slider;
+        private var _slider3:Slider;
+        private var _vslider1:Vslider;
+        private var _hSlider:Slider2;
+        private var dragDrop1:DragDrop;
+        private var dragDrop2:DragDrop;
+        private var dragDrop3:DragDrop;
+        private var globalTweenTime:Number = .7;
+        private var globalStagger:Number  = .3;
+		//private var theBlur = TweenPlugin.activate([BlurFilterPlugin]);
+
+		public function SimulationView(model:Model, controller:Controller, main:Main){
+
+			_model = model;
+			_controller = controller;
+			m = main;
+            init();
+
+		}
+
+
+	    private function init(e:Event = null):void {
+			initModelEventListeners();
+            creation();
+            sliderInit();
+            m.profit.mei.alpha = 0;
+			m.nextBtn.addEventListener(MouseEvent.CLICK, nextBtnHandler);
+			m.backBtn.addEventListener(MouseEvent.CLICK, backBtnHandler);
+			m.firstScreen.addEventListener(MouseEvent.CLICK, nextBtnHandler);
+            m.addEventListener(MouseEvent.CLICK, whatwasclicked);
+            m.nextBtnPaint.addEventListener(MouseEvent.CLICK, nextBtnPaintHandler);
+            m.exitBtn.addEventListener(MouseEvent.CLICK, exitBtnHandler);
+
+            m.cliffordRed.addEventListener("end", cliffordRedEnd);
+
+            m.step4Btn.addEventListener(MouseEvent.CLICK, step4BtnHandler);
+			m.firstScreen.buttonMode = true;
+			var targetSection:String;
+			var currentSection:String = "section0";
+
+            dragDrop1 = new DragDrop(m,_model,_controller,m.artDrager,m.dropTar);
+            dragDrop2 = new DragDrop(m,_model,_controller,m.locationDrager,m.dropTar2);
+            dragDrop3 = new DragDrop(m,_model,_controller,m.artistDrager,m.dropTar3);
+
+		}
+
+        function whatwasclicked(e:MouseEvent){
+            trace("you clicked " + e.target.name);
+        }
+
+
+
+		private function initModelEventListeners():void{
+			_model.addEventListener(Model.SECTION_CHANGE, onSectionChange);
+            _model.addEventListener(Model.BTN_SECTION, onBtnSection);
+            _model.addEventListener(Model.IVM_SLIDER_SET, ivmSliderSet);
+
+
+		}
+
+
+
+
+		  private function sliderInit(){
+            _slider1 = new Slider( m,m.artDrags, m.thumb, 47, 585,350,140,135);
+            _slider2 = new Slider( m,m.locationDrags, m.thumb2, 47, 585,350,140,135);
+            _slider3 = new Slider( m,m.choseArtist, m.thumb3, 47, 445,450,23,250);
+            _vslider1 = new Vslider(_controller,m,m.vAreaBar,m.vthumb1, 68, 155,125,-7,170);
+           _hSlider = new Slider2(_controller,m,m.hAreaBar,m.vthumb2, 195, 425,260,127,425);
+
+          }
+
+
+        private function creation (){
+			TweenPlugin.activate([TransformAroundCenterPlugin]);
+			tl = new TimelineMax( {delay:.5,onComplete:tlComplete, onStart:onStart} );
+			tl.timeScale = 1;
+			//----------------------------------
+			tl.addLabel("intro_in", tl.duration);
+			var introTl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+			introTl.appendMultiple(TweenMax.allFrom(
+				[
+
+					m.firstScreen,m.math180Logo
+
+
+				],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+			tl.append(introTl);
+
+		//	tl.addLabel("intro_complete", tl.duration);
+
+			tl.append(TweenMax.to(m.math180Logo, .1, {alpha:0, ease:_model.theEase}));
+			tl.append(TweenMax.to(m.firstScreen, .1, {alpha:0, ease:_model.theEase,onComplete:firstScreenOut}));
+			//----------------------------------
+			tl.addLabel("section0", tl.duration);
+			var section0Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+			section0Tl.appendMultiple(TweenMax.allFrom(
+				[
+
+					m.buda,m.topWindow
+
+
+				],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+			tl.append(section0Tl);
+			tl.appendMultiple(TweenMax.allTo(
+			[
+
+				m.buda,m.topWindow
+
+
+			],.1, {transformAroundCenter:{scaleX:0, scaleY:0},alpha:0, ease:_model.theEase}, .1));
+			//----------------------------------
+			tl.addLabel("section1", tl.duration);
+            tl.append(TweenMax.to(m.thumb, 0, {x:315, y:185}));
+			var section1Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+		section1Tl.appendMultiple(TweenMax.allFrom(
+				[
+
+					m.sliderWindow,m.thumb,m.labelText,m.stepFrame,m.step,m.artDrags
+
+
+				],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+			//section1Tl.append(TweenMax.to(m.artDrags, .5, {alpha:1}));
+		//	section1Tl.append(TweenMax.to(m.artDrager, .1, {alpha:1}));
+			tl.append(section1Tl);
+
+			//tl.addLabel("section1_complete", tl.duration);
+		tl.appendMultiple(TweenMax.allTo(
+				[
+					m.thumb,m.artDrags,m.sliderWindow
+
+				],.1, {alpha:0, ease:_model.theEase}, .2));
+
+			//----------------------------------
+
+			tl.addLabel("section2", tl.duration);
+            tl.append(TweenMax.to(m.thumb2, 0, {x:315}));
+			var section2Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+		//	section2Tl.append(TweenMax.to(m.locationDrager, 0, {y:61}));
+			section2Tl.appendMultiple(TweenMax.allFrom(
+				[
+
+					m.dragWindow2,m.thumb2,m.locationDrags
+
+
+				],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+		//	section2Tl.append(TweenMax.to(m.locationDrager, 0, {alpha:1}));
+			tl.append(section2Tl);
+
+			tl.appendMultiple(TweenMax.allTo(
+				[
+                    m.thumb2,m.locationDrags ,m.dragWindow2
+				],.1, {alpha:0, ease:_model.theEase}, .1));
+
+			     //----------------------------------
+			tl.addLabel("section3", tl.duration);
+			var section3Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+            section3Tl.appendMultiple(TweenMax.allFrom(
+                    [
+
+                        m.previewWin, m.stepFrame ,m.step
+
+                    ],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+
+
+			tl.append(section3Tl);
+
+
+			tl.appendMultiple(TweenMax.allTo(
+				[
+					m.previewWin
+				],.1, {alpha:0, ease:_model.theEase}, .1));
+
+			//----------------------------------
+
+			tl.addLabel("section4", tl.duration);
+			var section4Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+            section4Tl.append(TweenMax.to(m.step, .2, {alpha:1,ease:_model.theEase}));
+            section4Tl.append(TweenMax.to(m.stepFrame, .2, {alpha:1,ease:_model.theEase}));
+            section4Tl.appendMultiple(TweenMax.allFrom(
+                    [
+
+                        m.dragWindow3,m.profit,m.thumb3,m.choseArtist
+
+                    ],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+          //  section4Tl.append(TweenMax.to(m.artistDrager, 0, {alpha:1}));
+
+			tl.append(section4Tl);
+			tl.appendMultiple(TweenMax.allTo(
+				[
+                    m.choseArtist,m.thumb3,m.profit,m.dragWindow3
+				],.1, {alpha:0, ease:_model.theEase}, .1));
+			//----------------------------------
+            tl.addLabel("section5", tl.duration);
+            var section5Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+
+
+            section5Tl.appendMultiple(TweenMax.allFrom(
+                    [
+                        m.step4,m.step4Btn, m.wall , m.wallHeight, m.wallLength,  m.dropTar4
+                    ],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+
+
+            section5Tl.insertMultiple(TweenMax.allFrom(
+                    [
+                        m.hNumberBox1, m.hNumberInput1 ,m.vNumberBox2, m.vNumberInput2 ,m.areaBack
+                    ],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}),section0Tl.duration);
+            section5Tl.insert(TweenMax.to( m.backBtn, globalTweenTime, {visible:false, ease:_model.theEase }));
+            tl.append(section5Tl);
+
+            tl.addLabel("section6", tl.duration);
+            var section6Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+
+           // section4Tl.append(TweenMax.to(m.stepFrame, globalTweenTime, {width:1,height:1,ease:_model.theEase}));
+            section6Tl.insertMultiple(TweenMax.allTo([m.wallHeight, m.wallLength],globalTweenTime, {alpha:0, ease:_model.theEase}));
+
+            section6Tl.insertMultiple(TweenMax.allTo([m.hNumberBox1, m.hNumberInput1 ],globalTweenTime, {y:"-35", ease:_model.theEase}));
+            section6Tl.insertMultiple(TweenMax.allTo([m.vNumberBox2, m.vNumberInput2 ],globalTweenTime, {x:"-115", ease:_model.theEase}));
+            section6Tl.insert(TweenMax.to(m.areaBack, globalTweenTime, {width:280,height:140,x:180,y:65,ease:_model.theEase}));
+
+            section6Tl.appendMultiple(TweenMax.allFrom([
+                        m.cliffordGray,m.grid, m.vthumb1 ,m.vthumb2 ,m.vtrack1 , m.vtrack2 ,m.vAreaBar, m.hAreaBar
+                    ],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+
+            tl.append(section6Tl);
+
+               trace(tl.duration);
+
+
+            tl.addLabel("section7", tl.duration);
+            var section7Tl:TimelineMax = new TimelineMax({onComplete:onLabelStop});
+            section7Tl.insertMultiple(TweenMax.allTo([m.hNumberBox1, m.hNumberInput1,m.vNumberBox2, m.vNumberInput2 ],globalTweenTime, {alpha:0, ease:_model.theEase}));
+            section7Tl.insertMultiple(TweenMax.allTo([m.cliffordGray,m.vNumber2,m.hNumber2,m.vNumber3,m.hNumber3,m.dottedV,m.dottedH],globalTweenTime, {alpha:1, ease:_model.theEase}));
+            section7Tl.insert(TweenMax.to(m.hNumber3, globalTweenTime, {x:"-80",alpha:1,ease:_model.theEase}));
+            section7Tl.insert(TweenMax.to(m.vNumber2, globalTweenTime, {y:"-30",alpha:1,ease:_model.theEase}));
+
+            section7Tl.insert(TweenMax.to(m.hNumber2, globalTweenTime, {x:"50",alpha:1,ease:_model.theEase}));
+            section7Tl.insert(TweenMax.to(m.vNumber3, globalTweenTime, {y:"30",alpha:1,ease:_model.theEase}));
+
+            section7Tl.insertMultiple(TweenMax.allTo([m.vNumberBox2, m.vNumberInput2 ],globalTweenTime, {y:"35", ease:_model.theEase}));
+            section7Tl.insert(TweenMax.to( m.nextBtn, globalTweenTime, {alpha:0,x:600, ease:_model.theEase }));
+            section7Tl.insert(TweenMax.to( m.nextBtnPaint, globalTweenTime, {alpha:1, ease:_model.theEase }));
+
+            tl.append(section7Tl);
+
+
+
+            tl.addLabel(" section8", tl.duration);
+            var  section8Tl:TimelineMax = new TimelineMax({onComplete:onPaint});
+             section8Tl.insertMultiple(TweenMax.allTo([
+                m.cliffordGray,m.grid,m.wall,m.nextBtnPaint, m.vNumber2,m.hNumber2,m.vNumber3,m.hNumber3, m.vthumb1 ,m.vthumb2 ,m.vtrack1 , m.vtrack2
+            ],globalTweenTime, {alpha:0, ease:_model.theEase}));
+            section8Tl.insert(TweenMax.to( m.exitBtn, .1, {y:261, ease:_model.theEase }));
+            section8Tl.insert(TweenMax.to( m.exitBtn, globalTweenTime, {alpha:1, ease:_model.theEase }));
+
+            tl.append( section8Tl);
+
+ // tl.gotoAndPlay("section4");
+             }
+
+		function firstScreenOut(){
+			m.firstScreen.visible = false;
+		}
+
+        function onPaint(){
+            m.cliffordRed.gotoAndPlay("one");
+        }
+
+		function onLabelStop(){
+		tl.pause();
+		}
+		function onStart(){
+			//tl.addCallback(onLabelStop, "stop");
+
+            tl.addCallback(setSection, "section0");
+            tl.addCallback(setSection, "section1");
+            tl.addCallback(setSection, "section2");
+            tl.addCallback(setSection, "section3");
+            tl.addCallback(setSection, "section4");
+            tl.addCallback(setSection, "section5");
+            tl.addCallback(setSection, "section6");
+            tl.addCallback(setSection, "section7");
+            tl.addCallback(setSection, "section8");
+
+          tl.addCallback(firstSection0, "section0");
+		  tl.addCallback(firstSection1, "section1");
+          tl.addCallback(firstSection2, "section2");
+		  tl.addCallback(firstSection3, "section3");
+		  tl.addCallback(firstSection4, "section4");
+          tl.addCallback(firstSection5, "section5");
+          tl.addCallback(firstSection6, "section6");
+          tl.addCallback(firstSection7, "section7");
+          tl.addCallback(firstSection8, "section8");
+          tl.addCallback(loadNumbers, 16);
+
+
+			m.firstScreen.visible = true;
+
+		}
+
+        function cliffordRedEnd(e:Event){
+
+                  m.stepFrame.alpha = 0;
+            TweenMax.to( m.cliffordGray, globalTweenTime, {alpha:0, ease:_model.theEase }) ;
+           TweenMax.to(m.cliffordRed, globalTweenTime +.5, {x:"-150",ease:_model.theEase});
+          TweenMax.allTo([
+                m.dottedV,m.dottedH,m.vAreaBar, m.hAreaBar
+            ],globalTweenTime, {alpha:0, ease:_model.theEase});
+        }
+
+        function ivmSliderSet(e:Event){
+             tl.gotoAndPlay("section7");
+            SoundMixer.stopAll();
+           // TweenMax.to(m.vAreaBar2, .1, {y:128,ease:_model.theEase});
+           // TweenMax.to(m.hAreaBar2, .1, {x:296,ease:_model.theEase});
+
+            _controller.setSection(tl.currentLabel);
+            trace("yep")
+        }
+
+        function step4BtnHandler(e:Event){
+
+           // tl.gotoAndPlay("section4");
+        }
+
+    function setSection(){
+        _controller.setSection(tl.currentLabel);
+    }
+
+    function onSectionChange(e:Event){
+        trace(_model.theCurrentSection);
+        switch (_model.theCurrentSection)
+        {
+            case "intro_in":
+                everyintro();
+                break;
+            case "section0":
+                everySection0();
+                break;
+            case "section1":
+               everySection1();
+                break;
+            case "section2":
+                everySection2();
+                break;
+            case "section3":
+                everySection3();
+                break;
+            case "section4":
+                everySection4();
+                break;
+            case "section5":
+                everySection5();
+                break;
+            case "section6":
+                everySection6();
+                break;
+            case "section7":
+                everySection7();
+                break;
+            case "section8":
+                everySection8();
+                break;
+            default:
+                trace ("nothing")
+        }
+    }
+
+        function loadNumbers(){
+            _controller.setInputNumbers();
+        }
+
+                function endstuff(){
+                  //  m.vNumberInput2.text = "";
+                   // m.hNumberInput1.text = "";
+
+                    TweenMax.allTo([
+                        m.cliffordRed,m.vNumber2,m.hNumber2,m.vNumber3,m.hNumber3, m.vthumb1 ,m.vthumb2 ,m.vtrack1 , m.vtrack2,m.nextBtnPaint
+                    ],0, {alpha:0}) ;
+                }
+
+
+    function firstSection0(){
+
+        TweenMax.to( m.backBtn, globalTweenTime, {alpha:1, ease:_model.theEase } );
+        TweenMax.to( m.nextBtn, globalTweenTime, {alpha:1, ease:_model.theEase } );
+        TweenMax.to( m.projectWindow, globalTweenTime, {alpha:1, ease:_model.theEase } );
+        tl.removeCallback(firstSection0, "section0");
+    }
+
+        function everyintro(){
+            //  trace(tl.currentLabel);
+            m.firstScreen.visible = false;
+           // TweenMax.to( m.stepMarker, .5, {x:54,alpha:0, ease:_model.theEase } );
+        }
+
+        function everySection0(){
+          //  trace(tl.currentLabel);
+            m.firstScreen.visible = false;
+            TweenMax.to( m.stepMarker, .5, {x:54,alpha:0, ease:_model.theEase } );
+        }
+
+
+		function firstSection1(){
+			TweenMax.to( m.dropTar, globalTweenTime, {alpha:1, ease:_model.theEase } );
+			TweenMax.to( m.step1, globalTweenTime, {delay:.2,alpha:1, ease:_model.theEase } );
+			tl.removeCallback(firstSection1, "section1");
+		}
+
+        function everySection1(){
+            endstuff();
+            TweenMax.to( m.stepMarker, globalTweenTime, {x:54,alpha:1, ease:_model.theEase } );
+            m.step.text = "STEP 1";
+
+            m.labelText.text = "Choose your artistic expression\u002E";
+        }
+
+        function firstSection2(){
+            TweenMax.to( m.dropTar2, globalTweenTime, {alpha:1, ease:_model.theEase } );
+            TweenMax.to( m.step2, globalTweenTime, {delay:.2,alpha:1, ease:_model.theEase } );
+        }
+
+		function everySection2(){
+            endstuff();
+            TweenMax.to( m.stepMarker, globalTweenTime, {x:162,alpha:1, ease:_model.theEase } );
+			m.step.text = "STEP 2";
+			m.labelText.text = "Scout your location\u0021";
+		}
+
+
+		function firstSection3(){
+			m.locationDrager.buttonMode = true;
+			tl.removeCallback(firstSection3, "section3");
+		}
+
+		function everySection3(){
+            TweenMax.to( m.stepMarker, globalTweenTime, {x:162,alpha:1, ease:_model.theEase } );
+			m.step.text = "";
+			m.labelText.text = "Design planning complete\u0021";
+		}
+
+
+		function firstSection4(){
+            endstuff();
+            TweenMax.to( m.dropTar3, globalTweenTime, {alpha:1, ease:_model.theEase } );
+            TweenMax.to( m.step3, globalTweenTime, {delay:.2,alpha:1, ease:_model.theEase } );
+            tl.removeCallback(firstSection4, "section4");
+		}
+
+		function everySection4(){
+
+            TweenMax.to( m.stepMarker, globalTweenTime, {x:270,alpha:1, ease:_model.theEase } );
+
+            m.step.text = "STEP 3";
+            m.labelText.text = "Hire an artist\u0021";
+		}
+
+		function firstSection5(){
+            tl.removeCallback(firstSection5, "section5");
+		}
+
+		function everySection5(){
+            TweenMax.to( m.stepMarker, globalTweenTime, {x:378,alpha:1, ease:_model.theEase } );
+            m.step.text = "STEP 4";
+            m.labelText.text = "Choose the size of your mural\u0021";
+		}
+
+        function firstSection6(){
+
+            tl.removeCallback(firstSection6, "section6");
+            m.step.text = "STEP 5";
+            m.labelText.text = "Divide up the mural\u0021";
+        }
+
+        function everySection6(){
+
+        }
+
+        function firstSection7(){
+            tl.removeCallback(firstSection7, "section7");
+        }
+
+        function everySection7(){
+
+        }
+
+        function firstSection8(){
+            tl.removeCallback(firstSection8, "section8");
+            TweenMax.fromTo( m.moneyLeft, globalTweenTime, {delay:6,transformAroundCenter:{scaleX:0, scaleY:0},alpha:0 },{delay:3,transformAroundCenter:{scaleX:1, scaleY:1},alpha:1, ease:_model.theEase } );
+
+            m.step.text = "";
+            m.labelText.text = "You Did It\u0021";
+        }
+
+        function everySection8(){
+
+        }
+
+        function onBtnSection(e:Event){
+            tl.gotoAndPlay(_model.thebtnSection);
+            switch (_model.thebtnSection)
+            {
+                case "intro_in":
+                    break;
+                case "section0":
+                    everySection0();
+                    break;
+                case "section1":
+                    everySection1();
+                    break;
+                case "section2":
+                    everySection2();
+                    break;
+                case "section3":
+                    everySection3();
+                    break;
+                case "section4":
+                    everySection4();
+                    break;
+                default:
+                    trace ("nothing")
+            }
+        }
+
+
+        private function nextBtnPaintHandler(e:MouseEvent):void{
+            TweenMax.to( m.cliffordRed, globalTweenTime, {alpha:1, ease:_model.theEase, onComplete:startRedCliff }) ;
+            tl.play();
+        }
+
+        private function exitBtnHandler(e:MouseEvent):void{
+            TweenMax.to( m.exitBtn, globalTweenTime, {alpha:0, ease:_model.theEase}) ;
+            TweenMax.to( m.moneyLeft, globalTweenTime, {alpha:0, ease:_model.theEase}) ;
+            m.exitBtn.y = 325;
+            m.cliffordRed.alpha = 0;
+            tl.gotoAndPlay("intro_in");
+            m.artBtn.alpha =
+            m.locationBtn.alpha =
+            m.artistBtn.alpha =
+            m.step4Btn.alpha =
+            m.step1.alpha =
+            m.step2.alpha =
+            m.step3.alpha =
+            m.step4.alpha =
+            m.hNumber3.alpha =
+            m.vNumber3.alpha =
+            m.hNumber2.alpha =
+            m.dropTar.alpha =
+            m.dropTar2.alpha =
+            m.dropTar3.alpha =
+            m.dropTar4.alpha =
+            m.nextBtnPaint.alpha =
+
+            m.vNumber32.alpha = 0;
+
+
+            _controller.setHSliderNum("");
+            _controller.setVSliderNum("");
+        }
+
+
+       function startRedCliff(){
+           m.cliffordRed.gotoAndPlay("one");
+       }
+
+        private function nextBtnHandler(e:MouseEvent):void{
+			tl.play();
+
+            SoundMixer.stopAll();
+		}
+
+		private function backBtnHandler(e:MouseEvent):void{
+            SoundMixer.stopAll();
+			tl.gotoAndPlay(tl.getLabelBefore(tl.getLabelTime(tl.currentLabel)));
+            _controller.setSection(tl.currentLabel);
+		}
+			function tlComplete(){
+			}
+
+
+
+	}
+
+
+
+}

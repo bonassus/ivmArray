@@ -1,0 +1,139 @@
+
+package mvc.view
+{
+import com.greensock.*;
+import com.greensock.easing.*;
+
+import flash.display.*;
+import flash.events.*;
+import flash.net.URLRequest;
+import flash.text.TextField;
+import flash.text.TextFormat;
+import flash.utils.Timer;
+
+import mvc.controller.Controller;
+import mvc.model.Model;
+import mvc.view.RectGraph;
+import mvc.view.Scroll;
+import mvc.view.RectGraphDotted;
+
+import mvc.view.DashedLine;
+import mvc.view.Draw;
+
+	
+	public class View extends MovieClip
+	{
+		private var _model:Model;
+		private var _controller:Controller;
+	 private var _scroll:Scroll;
+	 private var _rectGraph:RectGraph;
+	 private var sampleContent:SampleContent;
+	 private var areaBarV:AreaBarV = new AreaBarV;
+	 private var dottedH1:DottedH = new DottedH;
+	// private var dottedH2:RectGraphDotted;
+	 
+	 private var dl = new DashedLine(this,3,7);
+	 private var draw:Draw = new Draw;
+
+		public function View(model:Model, controller:Controller){
+          _model = model;
+		  _controller = controller;
+      
+		 
+		  
+	
+			init();
+			
+		}
+		
+		
+		
+	    private function init():void {
+			initModelEventListeners();
+            creation();
+			
+			
+		}
+
+		private function initModelEventListeners():void{
+            _model.addEventListener(Model.SLIDER_PERC, scrollPercHandler);
+        
+		}
+
+        private function creation (){
+			
+			dl.lineStyle(2,0x666666,2);	
+			
+			
+			
+			sampleContent = new SampleContent;
+			addChild(sampleContent);
+			_scroll =  new Scroll(sampleContent,"HOR",600,300,_model,_controller);
+			_rectGraph = new RectGraph(580,300,0xFFFFFF,1);
+			
+			 _scroll.x = 300;
+			 _rectGraph.x = _scroll.x + 10;
+			 _rectGraph.y = _scroll.y = 200;
+			
+			// dottedH2.x = 200;
+			// dottedH2.y = 200;
+			 
+			// 
+			// dottedH2.x = _rectGraph.width + _rectGraph.x;
+	//		 dottedH2.y  = _rectGraph.y - dottedH2.height;
+				 
+			 dottedH1.x =  _rectGraph.x
+			 dottedH1.y =  _rectGraph.y - dottedH1.height;
+			
+			 
+			 
+			addChild(_rectGraph);
+			addChild(_scroll);
+			addChild(areaBarV);
+			addChild(dottedH1);	
+			
+
+             }
+		
+       private function scrollPercHandler(e:Event){
+		 
+		   areaBarV.x = (300 + 19)  + ((600-38) * _model.scrollPerc);
+		   areaBarV.y = _scroll.y;
+		   
+		   var _width = 100* _model.scrollPerc;
+		   
+		   draw.curvedBox(dl,10,10,_width,40,20);
+		 //  draw.clearDraw();
+
+		 //  dottedH2 = new RectGraphDotted( 100 );
+		   
+		   
+		  // dottedH2.width= sampleContent.width;
+
+		   
+		   
+		   //trace(_model.scrollPerc)
+		   //trace(areaBarV.x);
+		   
+//		   dottedH2.rotation = 180;
+//		   addChild(dottedH2);
+//		   
+//		   dottedH2.x = areaBarV.x;
+		   
+		   
+		   
+		   
+		   
+
+       }
+	   
+	   
+	   
+	   
+
+
+	}
+
+
+
+}

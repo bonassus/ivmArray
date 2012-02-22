@@ -1,0 +1,9 @@
+tl = new TimelineMax( {} );
+var section7Tl:TimelineMax = new TimelineMax({onComplete:onStop});
+section7Tl.appendMultiple(TweenMax.allFrom([m.cliffordGray,m.vthumb1 ,m.vthumb2 ,m.vtrack1 , m.vtrack2 ,m.vAreaBar, m.vAreaBar2],globalTweenTime, {transformAroundCenter:{scaleX:0, scaleY:0}, alpha:0, ease:_model.theEase}, globalStagger));
+tl.append(section7Tl);
+
+var section8Tl:TimelineMax = new TimelineMax({onComplete:onStop});
+section8Tl.insertMultiple(TweenMax.allTo([m.hNumberBox1, m.hNumberInput1,m.vNumberBox2, m.vNumberInput2 ],globalTweenTime, {alpha:0, ease:_model.theEase}));
+tl.append(section8Tl);
+}
